@@ -14,7 +14,7 @@ scenario_prefix <- 'FEED24'
 scenario_suffixes <- c('FEED_scen', 'FEED_QP_scen', 'YLD_scen', 'COMB_scen', 'COMB_QP_scen', 'SOY_scen', 'ALLCOM_QP_scen')
 
 # Define the path to the data
-datPath <- file.path('C:/Users/arsovsp/AGLCOSGAMS/scenarios', paste0('SCEN_', scenario_prefix))
+datPath <- file.path('YOUR PATH HERE TO FOLDER, paste0('SCEN_', scenario_prefix))
 
 # Load all scenario data once
 scenario_data_list <- lapply(scenario_suffixes, function(suffix) {
