@@ -1,0 +1,58 @@
+library(dplyr)
+library(tidyr)
+library(gdxrrw)
+library(DT)
+library(htmltools)
+library(htmlwidgets)
+
+# Initialize GDX API
+Sys.setenv(GAMS_SYS_DIR = "C:/Program Files/GAMS/45")
+igdx(Sys.getenv("GAMS_SYS_DIR"))
+
+# Define the static prefix and scenarios suffixes
+scenario_prefix <- 'FEED24'
+scenario_suffixes <- c('FEED_scen', 'FEED_QP_scen', 'YLD_scen', 'COMB_scen', 'COMB_QP_scen', 'SOY_scen', 'ALLCOM_QP_scen')
+
+# Define the path to the data
+datPath <- file.path('C:/Users/arsovsp/AGLCOSGAMS/scenarios', paste0('SCEN_', scenario_prefix))
+
+# Load all scenario data once
+scenario_data_list <- lapply(scenario_suffixes, function(suffix) {
+  tryCatch({
+    rgdx.param(file.path(datPath, paste0('output_', scenario_prefix, '_', suffix, '.gdx')),
+               symName = 'p_dbvar',
+               names = c('ctr', 'com', 'var', 'yr', 'valScen')) %>%
+      mutate(ctr = as.character(ctr),
+             com = as.character(com),
+             var = as.character(var),
+             yr = as.character(yr),
+             scenario = suffix)
+  }, error = function(e) {
+    message(paste("Error loading scenario:", suffix, ":", e$message))
+    NULL
+  })
+})
+
+# Remove NULL elements if any errors occurred during data loading
+scenario_data_list <- scenario_data_list[!sapply(scenario_data_list, is.null)]
+
+# Name the list elements
+names(scenario_data_list) <- scenario_suffixes[!sapply(scenario_data_list, is.null)]
+
+# Load baseline data (static)
+bsln_data_sp <- tryCatch({
+  rgdx.param(file.path(datPath, paste0('output_', scenario_prefix, '_baseline.gdx')),
+             symName = 'p_dbvar',
+             names = c('ctr', 'com', 'var', 'yr', 'valBL')) %>%
+    mutate(ctr = as.character(ctr),
+           com = as.character(com),
+           var = as.character(var),
+           yr = as.character(yr))
+}, error = function(e) {
+  message(paste("Error loading baseline data:", e$message))
+  NULL
+})
+
+# Check if baseline data loaded successfully
+if (is.null(bsln_data_sp)) stop("Baseline data failed to load, terminating script.")
+
